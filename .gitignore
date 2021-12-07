@@ -33,3 +33,5 @@ pythonenv*/
 # weather station data
 /data/banner/*
 /src/outdated/*
+src/outdated
+src/outdated/
