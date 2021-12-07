@@ -1,0 +1,39 @@
+Airborne Snow Observatories Inc.
+Full basin Mosaic, Grand Mesa, CO
+Processing Date: Thu May 13 21:09:18 2021
+Survey Date: 2020Feb1-2
+Exported by swe_at_1000ft_elev_bands.pro
+SWE file=D:\SUPER\USCO20200201\USCOGM20200201f1\swe\outputs\mosaic\ASO_GrandMesa_Mosaic_2020Feb1-2_swe_50m
+ 
+Flag **: Note these values represent noise inherent in remotely sensed data and represent <10 pixels or v. low% of basin area. Treat with caution."
+  
+Band 1 =       1000.00 to      2000.00 ft
+Band 2 =       2000.00 to      3000.00 ft
+Band 3 =       3000.00 to      4000.00 ft
+Band 4 =       4000.00 to      5000.00 ft
+Band 5 =       5000.00 to      6000.00 ft
+Band 6 =       6000.00 to      7000.00 ft
+Band 7 =       7000.00 to      8000.00 ft
+Band 8 =       8000.00 to      9000.00 ft
+Band 9 =       9000.00 to      10000.0 ft
+Band 10 =       10000.0 to      11000.0 ft
+Band 11 =       11000.0 to      12000.0 ft
+Band 12 =       12000.0 to      13000.0 ft
+Band 13 =       13000.0 to      20000.0 ft
+__________________________________________
+     Band,  total area (sq.mi), snow area (sq.mi), band coverage (%), SWE volume (AF), Mean SWE depth (inches), Flag
+    Band1         0.0010            0.0000                0.0                       0.            NaN            **
+    Band2         0.0010            0.0000                0.0                       0.            NaN            **
+    Band3         0.0010            0.0000                0.0                       0.            NaN            **
+    Band4         0.0010            0.0000                0.0                       0.            NaN            **
+    Band5         0.0010            0.0000                0.0                       0.            NaN            **
+    Band6         0.0010            0.0000                0.0                       0.            NaN            **
+    Band7         0.0010            0.0000                0.0                       0.            NaN            **
+    Band8         0.2654            0.2210               83.3                      68.         5.7463              
+    Band9        19.2444           16.8177               87.4                    7606.         8.4794              
+   Band10        34.2908           32.6586               95.2                   17027.         9.7755              
+   Band11         0.0010            0.0000                0.0                       0.            NaN            **
+   Band12         0.0010            0.0000                0.0                       0.            NaN            **
+   Band13         0.0010            0.0000                0.0                       0.            NaN            **
+____________________
+Total SWE Volume (AF) =       24700.2 AF
