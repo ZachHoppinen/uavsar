@@ -31,5 +31,5 @@ pythonenv*/
 *.nc
 
 # weather station data
-data/banner/*
-src/outdated/*
+/data/banner/*
+/src/outdated/*
