@@ -1,0 +1,21 @@
+calculate basin water volume in snowpack
+*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*
+Full basin Mosaic, Grand Mesa, CO
+Airborne Snow Observatories Inc.
+Date: 2020Feb1-2
+surveyed area:                               139.3
+snow covered area (km^2):                    128.7
+percent snow coverage :                       92.4
+mean snowline elevation (m):                  2689.
+mean snowline elevation (ft):                 8822.
+volume of snowpack water (m^3):       3.04671e+007
+volume of snowpack water (acre-ft):          24700.
+--  --  --  --  --  --  --  --  --  --  --  --  -- 
+mean swe (m):                                 0.24
+mean depth (m):                               0.87
+max depth (m):                               18.60
+mean density (kg/m^3):                       274.1
+*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*
+file used: 
+D:\SUPER\USCO20200201\USCOGM20200201f1\swe\outputs\mosaic\ASO_GrandMesa_Mosaic_2020Feb1-2_swe_50m
+report created: Thu May 13 21:09:18 2021

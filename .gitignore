@@ -1,0 +1,34 @@
+.DS_Store/
+# Ignore editor directories & files
+.vscode/
+.idea/
+*~
+*.swp
+*.bak
+
+# Ignore Python cache & output
+__pycache__/
+*.pyc
+*.pyo
+
+# Ignore IPynb test dirs
+.ipynb_checkpoints/
+
+# generic log and output files
+*.log
+*.out
+*.prof
+*.lprof
+
+# Python environments for CodeSpaces
+pythonenv*/
+
+# Ignore image files
+*.tif
+*.tiff
+
+# netcdf files
+*.nc
+
+# weather station data
+/banner
