@@ -1,5 +1,5 @@
 """
-Downloads uavsar images from the Alaska Satellite Facility's Vertex service.
+Downloads uavsar images from the Alaska Satellite Facility's Vertex service. The script downloads interferogram, amplitude, coherence, unwrapped phase, and incidence angle of uavsar imgs from the vertex website and converts them to .tiff files.
 
 Usage:
     download-uavsar.py [-c csv_fp] [-o out_dir] [-d debug]
@@ -14,9 +14,11 @@ import numpy as np
 import pandas as pd
 import netrc
 import getpass
+from os import makedirs
 from os.path import join, basename, exists
 
 from funcs import log
+from funcs.command_line import downloading, unzip
 
 def main(args):
     csv_fp = args.get('-c')
@@ -24,51 +26,24 @@ def main(args):
     _log.debug(f'Inputs: csv - {csv_fp}, out_dir - {out_dir}')
     # Authenticate to ASF server using netrc file or user input
     try:
-        (ASF_USER, account, ASF_PASS) = netrc.netrc().authenticators("urs.earthdata.nasa.gov")
+        (user, account, pass) = netrc.netrc().authenticators("urs.earthdata.nasa.gov")
     except:
-        ASF_USER = input("Enter Username: ")
-        ASF_PASS = getpass.getpass("Enter Password: ")
+        user = input("Enter Username: ")
+        pass = getpass.getpass("Enter Password: ")
 
     # Get urls from csv
     urls = pd.read_csv(csv_fp, names = ['int_url'])
-    _log.info(f'Found {len(urls)} images in csv...')
+    _log.info(f'Found {len(urls)} images...')
 
     # Loop through urls
-    for file in urls.int_url:
-        # Check for overwrite
-        img_dir = join(out_dir, basename(file))
-        if exists(img_dir):
-            ans = input(f'\nWARNING! You are about overwrite {basename(file)} \n Press Y to'
-                        ' continue and any other key to abort...')
-            if ans.lower() == 'y':
-                os.makedirs(img_dir, exists_ok = True)
-                print(f'Downloading {file}...')
-                process = Popen(['wget',file,f'--user={ASF_USER}',f'--password={ASF_PASS}','-P',img_dir,'--progress=bar'], stderr=subprocess.PIPE)
-                started = False
-                for line in process.stderr:
-                    line = line.decode("utf-8", "replace")
-                    if started:
-                        splited = line.split()
-                        if len(splited) == 9:
-                            percentage = splited[6]
-                            speed = splited[7]
-                            remaining = splited[8]
-                            print("Downloaded {} with {} per second and {} left.".format(percentage, speed, remaining), end='\r')
-                    elif line == os.linesep:
-                        started = True
-            else:
-                print('Skipping...')
-        else:
-            os.makedirs(img_dir, exists_ok = True)
-
-
-
-    # Check if image has already been downloaded
-
-        if exists(join(out_dir,os.path.basename(file))):
-        ans = input(f'\nWARNING! You are about overwrite {os.path.basename(file)} previously '
-                    f'converted UAVSAR Geotiffs files located at {directory}!\nPress Y to'
-                    ' continue and any other key to abort: ')
+    for url in urls.int_url:
+        _log.info('Downloading {url}')
+        img_dir = join(out_dir, basename(url))
+        makedirs(img_dir, exists_ok = True)
+        # create temp dir and download interferogram grd files to it
+        grd_dir = downloading(url, img_dir, user, pass)
+        # Download amplitude file with same pattern
+        unzip(grd_dir, img_dir, '*.grd')
 
 
 
