@@ -14,6 +14,7 @@ import numpy as np
 import pandas as pd
 import netrc
 import getpass
+from docopt import docopt
 from os import makedirs
 from os.path import join, basename, exists
 
@@ -22,14 +23,14 @@ from funcs.command_line import downloading, unzip
 
 def main(args):
     csv_fp = args.get('-c')
-    out_dir = args.get(-o)
+    out_dir = args.get('-o')
     _log.debug(f'Inputs: csv - {csv_fp}, out_dir - {out_dir}')
     # Authenticate to ASF server using netrc file or user input
     try:
-        (user, account, pass) = netrc.netrc().authenticators("urs.earthdata.nasa.gov")
+        (user, account, password) = netrc.netrc().authenticators("urs.earthdata.nasa.gov")
     except:
         user = input("Enter Username: ")
-        pass = getpass.getpass("Enter Password: ")
+        password = getpass.getpass("Enter Password: ")
 
     # Get urls from csv
     urls = pd.read_csv(csv_fp, names = ['int_url'])
@@ -41,7 +42,7 @@ def main(args):
         img_dir = join(out_dir, basename(url))
         makedirs(img_dir, exists_ok = True)
         # create temp dir and download interferogram grd files to it
-        grd_dir = downloading(url, img_dir, user, pass)
+        grd_dir = downloading(url, img_dir, user, password)
         # Download amplitude file with same pattern
         unzip(grd_dir, img_dir, '*.grd')
 
@@ -50,6 +51,6 @@ def main(args):
 
 
 if __name__ == '__main__':
-    _log = log.script(__file__)
     args = docopt(__doc__)
+    _log = log.script(__file__, debug = args.get('-d'))
     main(args)
