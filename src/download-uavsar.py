@@ -24,6 +24,7 @@ from funcs.command_line import downloading, unzip
 def main(args):
     csv_fp = args.get('-c')
     out_dir = args.get('-o')
+    assert exists(out_dir) == True, AssertionError('Output directory does not exist.')
     _log.debug(f'Inputs: csv - {csv_fp}, out_dir - {out_dir}')
     # Authenticate to ASF server using netrc file or user input
     try:
@@ -38,15 +39,15 @@ def main(args):
 
     # Loop through urls
     for url in urls.int_url:
-        _log.info('Downloading {url}')
+        _log.info(f'Starting {url}')
         img_dir = join(out_dir, basename(url))
-        makedirs(img_dir, exists_ok = True)
+        makedirs(img_dir, exist_ok = True)
         # create temp dir and download interferogram grd files to it
-        grd_dir = downloading(url, img_dir, user, password)
+        grd_dir = join(img_dir, 'grd')
+        makedirs(grd_dir, exist_ok= True)
+        downloading(url, img_dir, user, password, _log = _log)
         # Download amplitude file with same pattern
         unzip(grd_dir, img_dir, '*.grd')
-
-
 
 
 
