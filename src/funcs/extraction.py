@@ -21,10 +21,10 @@ def downloading(file, directory, ASF_USER, ASF_PASS):
 
         if ans.lower() == 'y':
             file_control.clear(directory)
-            _log.info(f'downloading {file}...')
-            process = Popen(['wget',file,f'--user={ASF_USER}',f'--password={ASF_PASS}','-P',directory,'--show-progress','--progress=bar'], stderr=subprocess.PIPE)
+            _log.info(f'Downloading {file}...')
+            process = Popen(['wget',file,f'--user={ASF_USER}',f'--password={ASF_PASS}','-P',directory,'--show-progress','--progress=bar'], stderr=PIPE)
         else:
             _log.info('Skipping...')
     else:
         _log.info(f'Downloading {file}...')
-        process = Popen(['wget',file,f'--user={ASF_USER}',f'--password={ASF_PASS}','-P',directory,'--show-progress','--progress=bar'], stderr=subprocess.PIPE)
+        process = Popen(['wget',file,f'--user={ASF_USER}',f'--password={ASF_PASS}','-P',directory,'--progress=bar'], stderr=PIPE)

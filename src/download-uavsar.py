@@ -25,7 +25,6 @@ from funcs.file_control import unzip
 from funcs.conversion import grd_convert
 
 def main(args):
-    run = False
 
     csv_fp = args.get('-c')
     out_dir = args.get('-o')
@@ -50,13 +49,12 @@ def main(args):
         # create temp dir and download interferogram zip file to it
         grd_dir = join(img_dir, 'grd')
         makedirs(grd_dir, exist_ok= True)
-        if run:
-            downloading(url, grd_dir, user, password)
-            # Download amplitude file with same pattern
-            downloading(url.replace('INTERFEROMETRY','AMPLITUDE').replace('int','amp'), grd_dir, user, password)
-            # Unzip zip file into same directory
-            _log.info('Unzipping...')
-            unzip(grd_dir, grd_dir, '*.zip')
+        downloading(url, grd_dir, user, password)
+        # Download amplitude file with same pattern
+        downloading(url.replace('INTERFEROMETRY','AMPLITUDE').replace('int','amp'), grd_dir, user, password)
+        # Unzip zip file into same directory
+        _log.info('Unzipping...')
+        unzip(grd_dir, grd_dir, '*.zip')
         # Convert grd files to geographic projection tiffs
         grd_files = glob(join(grd_dir, '*.grd'))
         ann_file = glob(join(grd_dir, '*.ann'))[0]
