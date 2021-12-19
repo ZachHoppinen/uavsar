@@ -14,14 +14,13 @@ from funcs.snowexsql import read_InSar_annotation, INSAR_to_rasterio
 _log = logging.getLogger(__file__)
 
 
-def grd_convert(grd_files, ann_file, output, epsg, pol = False):
+def grd_convert(grd_files, ann_file, output):
     """
     Convert all grd files from the UAVSAR binary grd to tiff and then saves to the output dir
     Args:
         grd_files: List of *.grd files needed to be converted
         ann_file: .ann file associated with grd files
         output: directory to output files to
-        epsg: epsg of the resulting file
     """
     start = time.perf_counter()
     errors = []
@@ -36,7 +35,7 @@ def grd_convert(grd_files, ann_file, output, epsg, pol = False):
 
     nfiles = len(grd_files)
     if nfiles > 0:
-        _log.info('Converting {} UAVSAR .grd files to geotiff...'.format(len(nfiles)))
+        _log.info('Converting {} UAVSAR .grd files to geotiff...'.format(nfiles))
 
         for grd_fp in tqdm(sorted(grd_files)):
 

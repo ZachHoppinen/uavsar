@@ -1,6 +1,6 @@
 import os, shutil, logging
 from os import makedirs
-from os.path import basename, join
+from os.path import basename, join, exists
 from glob import glob
 from zipfile import ZipFile
 

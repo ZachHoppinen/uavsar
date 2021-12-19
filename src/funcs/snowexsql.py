@@ -8,8 +8,9 @@ from os.path import basename, join, dirname
 import rasterio
 from rasterio.crs import CRS
 from rasterio.transform import Affine
+import pytz
 
-_log = logging.getLogger(__file__)
+_log = logging.getLogger(basename(__file__))
 
 def get_encapsulated(str_line, encapsulator):
     """
@@ -152,7 +153,7 @@ def INSAR_to_rasterio(grd_file, desc, out_dir):
     fkey = fparts[0]
     ftype = fparts[-2]
     dname = data_map[ftype]
-    _log.info('Processing {} file...'.format(dname))
+    _log.debug('Processing {} file...'.format(dname))
 
     # Grab the metadata for building our georeference
     nrow = desc['ground range data latitude lines']['value']
@@ -167,16 +168,16 @@ def INSAR_to_rasterio(grd_file, desc, out_dir):
     dlon = desc['ground range data longitude spacing']['value']
     _log.debug('Expecting data to be shaped {} x {}'.format(nrow, ncol))
 
-    _log.info('Using Deltas for lat/long = {} / {} degrees'.format(dlat, dlon))
+    _log.debug('Using Deltas for lat/long = {} / {} degrees'.format(dlat, dlon))
 
     # Read in the data as a tuple representing the real and imaginary
     # components
-    _log.info(
+    _log.debug(
         'Reading {} and converting it from binary...'.format(
             basename(grd_file)))
 
     bytes = desc['{} bytes per pixel'.format(dname.split(' ')[0])]['value']
-    _log.info('{} bytes per pixel = {}'.format(dname, bytes))
+    _log.debug('{} bytes per pixel = {}'.format(dname, bytes))
 
     # Form the datatypes
     if dname in 'interferogram':
@@ -206,7 +207,7 @@ def INSAR_to_rasterio(grd_file, desc, out_dir):
         if comp in z.dtype.names:
             d = z[comp]
             out = fbase.format(comp, ext)
-            _log.info('Writing to {}...'.format(out))
+            _log.debug('Writing to {}...'.format(out))
             dataset = rasterio.open(
                 out,
                 'w+',
