@@ -19,7 +19,8 @@ from os import makedirs
 from os.path import join, basename, exists
 
 from funcs import log
-from funcs.command_line import downloading, unzip
+from funcs.extraction import downloading
+from funcs.file_control import unzip
 
 def main(args):
     csv_fp = args.get('-c')
@@ -40,14 +41,17 @@ def main(args):
     # Loop through urls
     for url in urls.int_url:
         _log.info(f'Starting {url}')
-        img_dir = join(out_dir, basename(url))
+        img_dir = join(out_dir, basename(url).replace('_int_grd.zip',''))
         makedirs(img_dir, exist_ok = True)
-        # create temp dir and download interferogram grd files to it
+        # create temp dir and download interferogram zip file to it
         grd_dir = join(img_dir, 'grd')
         makedirs(grd_dir, exist_ok= True)
-        downloading(url, img_dir, user, password, _log = _log)
+        downloading(url, grd_dir, user, password)
         # Download amplitude file with same pattern
-        unzip(grd_dir, img_dir, '*.grd')
+        downloading(url.replace('INTERFEROMETRY','AMPLITUDE').replace('int','amp'), grd_dir, user, password)
+        # Unzip zip file into same directory
+        _log.info('Unzipping...')
+        unzip(grd_dir, grd_dir, '*.zip')
 
 
 
