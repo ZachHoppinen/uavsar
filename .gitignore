@@ -39,3 +39,6 @@ pythonenv*/
 /src/outdated/*
 src/outdated
 src/outdated/
+
+# snowexsql cloned repo
+src/snowexsql
