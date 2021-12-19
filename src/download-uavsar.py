@@ -53,8 +53,6 @@ def main(args):
         _log.info('Unzipping...')
         unzip(grd_dir, grd_dir, '*.zip')
 
-
-
 if __name__ == '__main__':
     args = docopt(__doc__)
     _log = log.script(__file__, debug = args.get('-d'))
