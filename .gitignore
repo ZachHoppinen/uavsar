@@ -27,6 +27,9 @@ pythonenv*/
 *.tif
 *.tiff
 *.html
+*.grd
+*.zip
+*.ann
 
 # netcdf files
 *.nc
