@@ -56,6 +56,7 @@ def main(args):
         _log.info('Unzipping...')
         unzip(grd_dir, grd_dir, '*.zip')
         # Convert grd files to geographic projection tiffs
+        _log.info('Converting...')
         grd_files = glob(join(grd_dir, '*.grd'))
         ann_file = glob(join(grd_dir, '*.ann'))[0]
         grd_convert(grd_files, ann_file, img_dir)
