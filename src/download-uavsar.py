@@ -53,26 +53,9 @@ def main(args):
             ans = input(f'\nWARNING! You are about overwrite {basename(img_dir)} located at {out_dir}!.  '
                         f'\nPress Y to continue and any other key to abort: ')
 
+        if ans.lower() == 'y' or exists(img_dir) == False:
             if ans.lower() == 'y':
                 clear(img_dir)
-                grd_dir = join(img_dir, 'grd')
-                makedirs(grd_dir, exist_ok= True)
-                downloading(url, grd_dir, user, password)
-                # Download amplitude file with same pattern
-                downloading(url.replace('INTERFEROMETRY','AMPLITUDE').replace('int','amp'), grd_dir, user, password)
-                # Unzip zip file into same directory
-                _log.info('Unzipping...')
-                unzip(grd_dir, grd_dir, '*.zip')
-                # Convert grd files to geographic projection tiffs
-                _log.info('Converting...')
-                grd_files = glob(join(grd_dir, '*.grd'))
-                ann_file = glob(join(grd_dir, '*.ann'))[0]
-                grd_convert(grd_files, ann_file, img_dir, debug = debug_op)
-
-            else:
-                _log.info('Skipping...')
-        else:
-            makedirs(img_dir, exist_ok = True)
             grd_dir = join(img_dir, 'grd')
             makedirs(grd_dir, exist_ok= True)
             downloading(url, grd_dir, user, password)
@@ -86,8 +69,9 @@ def main(args):
             grd_files = glob(join(grd_dir, '*.grd'))
             ann_file = glob(join(grd_dir, '*.ann'))[0]
             grd_convert(grd_files, ann_file, img_dir, debug = debug_op)
-
-        _log.info('Completed! {:0.0f}s elapsed'.format(time.perf_counter() - start))
+            _log.info('Completed! {:0.0f}s elapsed'.format(time.perf_counter() - start))
+        else:
+            _log.info('Skipping...')
 
 if __name__ == '__main__':
     args = docopt(__doc__)
