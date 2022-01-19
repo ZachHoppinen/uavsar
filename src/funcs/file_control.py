@@ -21,6 +21,6 @@ def unzip(in_dir, out_dir, suffix):
     for file in glob(join(in_dir ,suffix)):
         makedirs(out_dir, exist_ok = True)
         with ZipFile(file, "r") as zip_ref:
-            _log.info(f'Extracting {file} to {out_dir}')
+            _log.info(f'Extracting {basename(file)} to {out_dir}')
             for member in tqdm(zip_ref.infolist(), desc='Extracting '):
-                zip_ref.extract(member)
+                zip_ref.extract(member, out_dir)
