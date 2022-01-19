@@ -129,7 +129,7 @@ def read_InSar_annotation(ann_file):
 
 
 
-def INSAR_to_rasterio(grd_file, desc, out_dir):
+def INSAR_to_rasterio(grd_file, desc, out_dir, debug = False):
     """
     Reads in the UAVSAR interferometry file and saves the real and complex
     value and writes them to GeoTiffs. Requires a .ann file to describe the data.
@@ -147,6 +147,8 @@ def INSAR_to_rasterio(grd_file, desc, out_dir):
                 'unw' : 'unwrapped phase',
                 'hgt' : 'dem used in ground projection'} #zk - 9/21 - added unw and hgt to datamap
 
+    if debug:
+        _log.setLevel(logging.DEBUG)
 
     # Grab just the filename and make a list splitting it on periods
     fparts = basename(grd_file).split('.')
@@ -175,8 +177,10 @@ def INSAR_to_rasterio(grd_file, desc, out_dir):
     _log.debug(
         'Reading {} and converting it from binary...'.format(
             basename(grd_file)))
-
-    bytes = desc['{} bytes per pixel'.format(dname.split(' ')[0])]['value']
+    if ftype != 'unw':
+        bytes = desc['{} bytes per pixel'.format(dname.split(' ')[0])]['value']
+    else:
+        bytes = desc['{} bytes per pixel'.format(dname)]['value']
     _log.debug('{} bytes per pixel = {}'.format(dname, bytes))
 
     # Form the datatypes

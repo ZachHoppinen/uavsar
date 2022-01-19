@@ -7,14 +7,13 @@ import pandas as pd
 from os import listdir, mkdir
 from os.path import abspath, basename, dirname, expanduser, isdir, join
 import logging
-import time
 
 from funcs.snowexsql import read_InSar_annotation, INSAR_to_rasterio
 
 _log = logging.getLogger(__file__)
 
 
-def grd_convert(grd_files, ann_file, output):
+def grd_convert(grd_files, ann_file, output, debug = False):
     """
     Convert all grd files from the UAVSAR binary grd to tiff and then saves to the output dir
     Args:
@@ -22,7 +21,9 @@ def grd_convert(grd_files, ann_file, output):
         ann_file: .ann file associated with grd files
         output: directory to output files to
     """
-    start = time.perf_counter()
+
+    if debug:
+        _log.setLevel(logging.DEBUG)
     errors = []
 
     desc = read_InSar_annotation(ann_file)
@@ -45,11 +46,11 @@ def grd_convert(grd_files, ann_file, output):
             _log.debug(f'Saving to {latlon_tiff}')
             try:
                 # Convert the GRD to a geotiff thats projected in lat long
-                INSAR_to_rasterio(grd_fp, desc, latlon_tiff)
+                INSAR_to_rasterio(grd_fp, desc, latlon_tiff, debug= debug)
 
             except Exception as e:
                 _log.error(e)
-                errors.append((grd, e))
+                errors.append((grd_fp, e))
 
         # Report errors an a convenient location for users
         if errors:
@@ -58,5 +59,3 @@ def grd_convert(grd_files, ann_file, output):
             for c in errors:
                 f, e = c[0], c[1]
                 _log.error('Conversion of {} errored out with:\n{}'.format(f, e))
-
-    _log.info('Completed! {:0.0f}s elapsed'.format(time.perf_counter() - start))

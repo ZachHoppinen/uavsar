@@ -3,6 +3,7 @@ from os import makedirs
 from os.path import basename, join, exists
 from glob import glob
 from zipfile import ZipFile
+from tqdm import tqdm
 
 def clear(folder):
     for filename in os.listdir(folder):
@@ -21,5 +22,5 @@ def unzip(in_dir, out_dir, suffix):
         makedirs(out_dir, exist_ok = True)
         with ZipFile(file, "r") as zip_ref:
             _log.info(f'Extracting {file} to {out_dir}')
-            zip_ref.extractall(out_dir)
-            _log.info("done")
+            for member in tqdm(zip_ref.infolist(), desc='Extracting '):
+                zip_ref.extract(member)
