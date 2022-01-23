@@ -26,7 +26,6 @@ from funcs.file_control import unzip, clear
 from funcs.conversion import grd_convert
 
 def main(args):
-
     csv_fp = args.get('-c')
     out_dir = args.get('-o')
     assert exists(out_dir) == True, AssertionError('Output directory does not exist.')
@@ -44,6 +43,7 @@ def main(args):
 
     # Loop through urls
     for i, url in enumerate(urls.int_url):
+        ans = 'n'
         start = time.perf_counter()
 
         _log.info(f'Starting {url}. \n {i+1} image of {len(urls)}')

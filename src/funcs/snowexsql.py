@@ -149,6 +149,8 @@ def INSAR_to_rasterio(grd_file, desc, out_dir, debug = False):
 
     if debug:
         _log.setLevel(logging.DEBUG)
+    else:
+        _log.setLevel(logging.INFO)
 
     # Grab just the filename and make a list splitting it on periods
     fparts = basename(grd_file).split('.')
