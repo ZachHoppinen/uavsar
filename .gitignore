@@ -19,6 +19,7 @@ __pycache__/
 *.out
 *.prof
 *.lprof
+*.svg
 
 # Python environments for CodeSpaces
 pythonenv*/
