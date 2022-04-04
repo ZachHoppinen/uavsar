@@ -1,5 +1,5 @@
 """
-Tiles ASO Lidar tiles into a complete image.
+Tiles QSI Lidar tiles into a complete image.
 
 Usage:
     merge_tiles.py [-i in_dir] [-o out_fp] [-p projected]
