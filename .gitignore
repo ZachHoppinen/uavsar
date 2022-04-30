@@ -33,13 +33,11 @@ pythonenv*/
 *.ann
 
 # netcdf files
-*.nc
+*.ncß
 
 # weather station data
 /data/banner/*
-/src/outdated/*
-src/outdated
-src/outdated/
+ß
 Lidar_Snippets_Banner
 
 # snowexsql cloned repo
