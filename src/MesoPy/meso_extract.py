@@ -2,12 +2,13 @@
 Function to capture image bounds and query and return time series of weather observations that overlap non-null values in image.
 
 Usage:
-    download-uavsar.py [-c csv_fp] [-o out_dir] [-d debug]
+    meso_extract.py [-i input_fp] [-c ann_csv] [-o out_fp] [-t token]
 
 Options:
     -i input_fp   file path to image to extract and bbox
-    -c ann_Csv    file path to annotation csv
-    -d debug      token for mesowest API ()
+    -c ann_csv    file path to annotation csv
+    -o out_fp     file path to save dictionary
+    -t token      token for mesowest API ()
 """
 
 import rasterio as rio
@@ -16,6 +17,8 @@ import numpy as np
 import pandas as pd
 from docopt import docopt
 from MesoPy import Meso
+from os.path import join
+import pickle
 
 def raster_box_extract(img, x_coord, y_coord, box_side = 5):
     meta = img.meta
@@ -30,12 +33,14 @@ def raster_box_extract(img, x_coord, y_coord, box_side = 5):
 def mesopy_date_parse(pd_date_str):
     return pd_date_str.strftime('%Y') + pd_date_str.strftime('%m') + pd_date_str.strftime('%d') + pd_date_str.strftime('%H') + pd_date_str.strftime('%M')
 
-def main(img_fp, start, end, token, anc_img = None):
+def main(args, anc_img = None):
     token = args.get('-t')
     if not token:
         token = '0191c61bf7914bd49b8bd7a98abb9469'
     img_fp = args.get('-i')
+    out_fp = args.get('-o')
     ann_df = pd.read_csv(args.get('-c'))
+
     start = pd.to_datetime(ann_df['stop time of acquisition for pass 1'][0])
     end = pd.to_datetime(ann_df['start time of acquisition for pass 2'][0])
     start = mesopy_date_parse(start)
@@ -51,17 +56,19 @@ def main(img_fp, start, end, token, anc_img = None):
     for stat in m.metadata(start = start, end = end, bbox = bounds)['STATION']:
         long = float(stat['LONGITUDE'])
         lat = float(stat['LATITUDE'])
-        name = float(stat['NAME'].lower().replace(' ',''))
+        name = stat['NAME'].lower().replace(' ','')
         with rio.open(img_fp) as src:
             w = raster_box_extract(src, long, lat)
         if len(w[~np.isnan(w)]) > 0:
             if name not in stat_ls:
-                obs = m.timeseries(start, start, stid = stat['STID'], vars = 'snow_depth')
+
+                obs = m.timeseries(start, end, stid = stat['STID'], vars = 'snow_depth')
                 if obs:
                     obs = obs['STATION'][0]['OBSERVATIONS']
                     d = {}
                     dt = pd.to_datetime(obs['date_time'])
                     if 'snow_depth_set_1' in obs.keys():
+                        stat_ls.append(name)
                         d['datetime'] = dt
                         d['img_arr'] = w
 
@@ -79,12 +86,17 @@ def main(img_fp, start, end, token, anc_img = None):
                         d['lat'] = stat['LATITUDE']
                         d['long'] = stat['LONGITUDE']
                         d['tz'] = stat['TIMEZONE']
+                        d['img_fp'] = img_fp
                         res[stat['NAME']] = d
-            stat_ls.append(name)
-
-    return res
+    if res:
+        with open(out_fp, 'wb') as f:
+            pickle.dump(res, f)
+    else:
+        print('No results found...')
 
 if __name__ == '__main__':
     args = docopt(__doc__)
 
     main(args)
+
+## python meso_extract.py -i /home/zacharykeskinen/uavsar/data/slc_stack/lowman_23205_20002-007_20007-003_0013d_s01_L090_01_int_grd/lowman_23205_20002-007_20007-003_0013d_s01_L090VV_01.cor.grd.tiff -c /home/zacharykeskinen/uavsar/data/slc_stack/lowman_23205_20002-007_20007-003_0013d_s01_L090_01_int_grd/lowman_23205_20002-007_20007-003_0013d_s01_L090_01_int_grd.csv -o ~/uavsar/results/test_wx.csv
