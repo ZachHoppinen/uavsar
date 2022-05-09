@@ -94,12 +94,21 @@ def main(args, anc_img = None):
     else:
         print('No results found...')
 
-def meso_notebook_extract(img_fp, ann_csv, anc_img = None, token = None, box_side = 4):
+if __name__ == '__main__':
+    args = docopt(__doc__)
+
+    main(args)
+
+## python meso_extract.py -i /home/zacharykeskinen/uavsar/data/slc_stack/lowman_23205_20002-007_20007-003_0013d_s01_L090_01_int_grd/lowman_23205_20002-007_20007-003_0013d_s01_L090VV_01.cor.grd.tiff -c /home/zacharykeskinen/uavsar/data/slc_stack/lowman_23205_20002-007_20007-003_0013d_s01_L090_01_int_grd/lowman_23205_20002-007_20007-003_0013d_s01_L090_01_int_grd.csv -o ~/uavsar/results/test_wx.csv
+
+
+def meso_notebook_extract(img_fp, ann_csv, col_in = 'snow_depth_set_1', anc_img = None, token = None, box_side = 4):
     """
     Function for use in notebooks to capture image bounds and query and return time series of weather observations that overlap non-null values in image.
     Params:
     img_fp - filepath to tiff file to extract from
     ann_csv - filepath to annotation csv
+    col_in - column of interest. Good options include: 'snow_depth_set_1', 'air_temp_set_1', 'snow_water_equiv_set_1'
     anc_img - anncilary image to also extract values from at same locations as original
     token - Mesopy token (optional). Can be obtained at http://mesowest.org/api/signup/.
 
@@ -112,6 +121,7 @@ def meso_notebook_extract(img_fp, ann_csv, anc_img = None, token = None, box_sid
     end = pd.to_datetime(ann_df['start time of acquisition for pass 2'][0])
     start = mesopy_date_parse(start)
     end = mesopy_date_parse(end)
+    col_name = col_in.replace('_set_1', '')
 
 
     m = Meso(token=token)
@@ -128,25 +138,35 @@ def meso_notebook_extract(img_fp, ann_csv, anc_img = None, token = None, box_sid
             w = raster_box_extract(src, long, lat, box_side = box_side)
         if len(w[~np.isnan(w)]) > 0:
             if name not in stat_ls:
-                obs = m.timeseries(start, end, stid = stat['STID'], vars = 'snow_depth')
+                obs = m.timeseries(start, end, stid = stat['STID'], vars = 'snow_depth', units = 'height|m')
                 if obs:
+                    unit = obs['UNITS']['snow_depth']
                     obs = obs['STATION'][0]['OBSERVATIONS']
                     d = {}
                     dt = pd.to_datetime(obs['date_time'])
-                    if 'snow_depth_set_1' in obs.keys():
+                    if col_in in obs.keys():
                         stat_ls.append(name)
-                        d['datetime'] = dt
-                        d['img_arr'] = w
+                        df = pd.DataFrame(obs[col_in], index = dt)
+                        df = df.resample('D').mean()
+                        delta = (df.iloc[-1] - df.iloc[0]).values[0]
+                        if unit == 'Millimeters':
+                            delta /= 1000
+                        elif unit == 'Centimeters':
+                            delta /= 100
+                        d[f'delta_{col_name}'] = delta
+                        d['img_arr_mean'] = np.nanmean(w)
 
                         if anc_img:
                             with rio.open(img_fp) as src_anc:
                                 w_anc = raster_box_extract(src_anc, long, lat, box_side = box_side)
-                                d['anc_img'] = w_anc
+                                d['anc_img'] = np.nanmean(w_anc)
 
-                        d['snow_depth_set_1'] = obs['snow_depth_set_1']
-                        for anc_col in ['air_temp_set_1','snow_water_equiv_set_1']:
-                            if anc_col in obs.keys():
-                                d[anc_col] = obs[anc_col]
+                        # for anc_col in ['air_temp_set_1','snow_water_equiv_set_1']:
+                        #     if anc_col in obs.keys():
+                        #         df = pd.DataFrame(obs[anc_col], index = dt)
+                        #         df = df.resample('D').mean()
+                        #         name = anc_col.replace('set_1','')
+                        #         d[f'delta_{name}'] = np.nanmean((df.iloc[-1] - df.iloc[0]).values[0])
 
                         d['elev'] = stat['ELEVATION']
                         d['lat'] = stat['LATITUDE']
@@ -158,11 +178,3 @@ def meso_notebook_extract(img_fp, ann_csv, anc_img = None, token = None, box_sid
         return res
     else:
         print('No results found...')
-
-
-if __name__ == '__main__':
-    args = docopt(__doc__)
-
-    main(args)
-
-## python meso_extract.py -i /home/zacharykeskinen/uavsar/data/slc_stack/lowman_23205_20002-007_20007-003_0013d_s01_L090_01_int_grd/lowman_23205_20002-007_20007-003_0013d_s01_L090VV_01.cor.grd.tiff -c /home/zacharykeskinen/uavsar/data/slc_stack/lowman_23205_20002-007_20007-003_0013d_s01_L090_01_int_grd/lowman_23205_20002-007_20007-003_0013d_s01_L090_01_int_grd.csv -o ~/uavsar/results/test_wx.csv
