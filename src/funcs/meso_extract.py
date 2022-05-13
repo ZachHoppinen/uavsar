@@ -102,7 +102,7 @@ if __name__ == '__main__':
 ## python meso_extract.py -i /home/zacharykeskinen/uavsar/data/slc_stack/lowman_23205_20002-007_20007-003_0013d_s01_L090_01_int_grd/lowman_23205_20002-007_20007-003_0013d_s01_L090VV_01.cor.grd.tiff -c /home/zacharykeskinen/uavsar/data/slc_stack/lowman_23205_20002-007_20007-003_0013d_s01_L090_01_int_grd/lowman_23205_20002-007_20007-003_0013d_s01_L090_01_int_grd.csv -o ~/uavsar/results/test_wx.csv
 
 
-def meso_notebook_extract(img_fp, ann_csv, col_in = 'snow_depth_set_1', anc_img = None, token = None, box_side = 4):
+def meso_notebook_extract(img_fp, ann_csv, col_in = 'snow_depth_set_1', method = 'diff',anc_img = None, token = None, box_side = 10):
     """
     Function for use in notebooks to capture image bounds and query and return time series of weather observations that overlap non-null values in image.
     Params:
@@ -111,7 +111,7 @@ def meso_notebook_extract(img_fp, ann_csv, col_in = 'snow_depth_set_1', anc_img 
     col_in - column of interest. Good options include: 'snow_depth_set_1', 'air_temp_set_1', 'snow_water_equiv_set_1'
     anc_img - anncilary image to also extract values from at same locations as original
     token - Mesopy token (optional). Can be obtained at http://mesowest.org/api/signup/.
-
+    method - difference last and first day? Mean over period? Degree Melting Days?
     """
     if not token:
         token = '0191c61bf7914bd49b8bd7a98abb9469'
@@ -138,22 +138,42 @@ def meso_notebook_extract(img_fp, ann_csv, col_in = 'snow_depth_set_1', anc_img 
             w = raster_box_extract(src, long, lat, box_side = box_side)
         if len(w[~np.isnan(w)]) > 0:
             if name not in stat_ls:
-                obs = m.timeseries(start, end, stid = stat['STID'], vars = 'snow_depth', units = 'height|m')
+                obs = m.timeseries(start, end, stid = stat['STID'], vars = col_name, units = 'height|m')
                 if obs:
-                    unit = obs['UNITS']['snow_depth']
+                    unit = obs['UNITS'][col_name]
                     obs = obs['STATION'][0]['OBSERVATIONS']
                     d = {}
                     dt = pd.to_datetime(obs['date_time'])
+                    values = obs[col_in]
+                    values = [elem for elem in values if elem is not None]
                     if col_in in obs.keys():
                         stat_ls.append(name)
-                        df = pd.DataFrame(obs[col_in], index = dt)
-                        df = df.resample('D').mean()
-                        delta = (df.iloc[-1] - df.iloc[0]).values[0]
-                        if unit == 'Millimeters':
-                            delta /= 1000
-                        elif unit == 'Centimeters':
-                            delta /= 100
-                        d[f'delta_{col_name}'] = delta
+                        if method == 'diff':
+                            df = pd.DataFrame(values, index = dt)
+                            df = df.resample('D').mean()
+                            delta = (df.iloc[-1] - df.iloc[0]).values[0]
+                            if unit == 'Millimeters':
+                                delta /= 1000
+                            elif unit == 'Centimeters':
+                                delta /= 100
+                            d[f'delta_{col_name}'] = delta
+                        elif method == 'mean':
+                            # print(start)
+                            # print(end)
+                            # print(stat['STID'])
+                            mean = np.nanmean(values)
+                            if unit == 'Millimeters':
+                                mean /= 1000
+                            elif unit == 'Centimeters':
+                                mean /= 10
+                            d[f'mean_{col_name}'] = mean
+                        elif method == 'dmd':
+                            df = pd.DataFrame(obs[col_in], index = dt)
+                            df = df.resample('D').mean()
+                            df = df[(df[0].notnull()) & (df[0]>0)]
+                            dmd_sum = np.nansum(df)
+                            d[f'degmeltday_{col_name}'] = dmd_sum
+
                         d['img_arr_mean'] = np.nanmean(w)
 
                         if anc_img:
