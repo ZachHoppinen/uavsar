@@ -11,6 +11,7 @@ Options:
     -t token      token for mesowest API ()
 """
 
+from distutils.command.sdist import sdist
 import rasterio as rio
 from rasterio.windows import Window
 import numpy as np
@@ -121,80 +122,127 @@ def meso_notebook_extract(img_fp, ann_csv, col_in = 'snow_depth_set_1', method =
     end = pd.to_datetime(ann_df['start time of acquisition for pass 2'][0])
     start = mesopy_date_parse(start)
     end = mesopy_date_parse(end)
-    col_name = col_in.replace('_set_1', '')
-
-
     m = Meso(token=token)
     with rio.open(img_fp) as src:
         bounds  = src.bounds
     stat_ls = []
     res = {}
+    if method != 'full':
+        col_name = col_in.replace('_set_1', '')
 
-    for stat in m.metadata(start = start, end = end, bbox = bounds)['STATION']:
-        long = float(stat['LONGITUDE'])
-        lat = float(stat['LATITUDE'])
-        name = stat['NAME'].lower().replace(' ','')
-        with rio.open(img_fp) as src:
-            w = raster_box_extract(src, long, lat, box_side = box_side)
-        if len(w[~np.isnan(w)]) > 0:
-            if name not in stat_ls:
-                obs = m.timeseries(start, end, stid = stat['STID'], vars = col_name, units = 'height|m')
-                if obs:
-                    unit = obs['UNITS'][col_name]
-                    obs = obs['STATION'][0]['OBSERVATIONS']
-                    d = {}
-                    dt = pd.to_datetime(obs['date_time'])
-                    values = obs[col_in]
-                    values = [elem for elem in values if elem is not None]
-                    if col_in in obs.keys():
+        for stat in m.metadata(start = start, end = end, bbox = bounds)['STATION']:
+            long = float(stat['LONGITUDE'])
+            lat = float(stat['LATITUDE'])
+            name = stat['NAME'].lower().replace(' ','')
+            with rio.open(img_fp) as src:
+                w = raster_box_extract(src, long, lat, box_side = box_side)
+            if len(w[~np.isnan(w)]) > 0:
+                if name not in stat_ls:
+                    obs = m.timeseries(start, end, stid = stat['STID'], vars = col_name, units = 'height|m')
+                    if obs:
+                        unit = obs['UNITS'][col_name]
+                        obs = obs['STATION'][0]['OBSERVATIONS']
+                        d = {}
+                        dt = pd.to_datetime(obs['date_time'])
+                        values = obs[col_in]
+                        values = [elem for elem in values if elem is not None]
+                        if col_in in obs.keys():
+                            stat_ls.append(name)
+                            if method == 'diff':
+                                df = pd.DataFrame(obs[col_in], index = dt)
+                                df = df.resample('D').mean()
+                                delta = (df.iloc[-1] - df.iloc[0]).values[0]
+                                if unit == 'Millimeters':
+                                    delta /= 1000
+                                elif unit == 'Centimeters':
+                                    delta /= 100
+                                d[f'delta_{col_name}'] = delta
+                            elif method == 'mean':
+                                mean = np.nanmean(values)
+                                if unit == 'Millimeters':
+                                    mean /= 1000
+                                elif unit == 'Centimeters':
+                                    mean /= 10
+                                d[f'mean_{col_name}'] = mean
+                            elif method == 'dmd':
+                                df = pd.DataFrame(obs[col_in], index = dt)
+                                df = df.resample('D').mean()
+                                df = df[(df[0].notnull()) & (df[0]>0)]
+                                dmd_sum = np.nansum(df)
+                                d[f'degmeltday_{col_name}'] = dmd_sum
+
+                            d['img_arr_mean'] = np.nanmean(w)
+
+                            if anc_img:
+                                with rio.open(img_fp) as src_anc:
+                                    w_anc = raster_box_extract(src_anc, long, lat, box_side = box_side)
+                                    d['anc_img'] = np.nanmean(w_anc)
+
+                            d['elev'] = stat['ELEVATION']
+                            d['lat'] = stat['LATITUDE']
+                            d['long'] = stat['LONGITUDE']
+                            d['tz'] = stat['TIMEZONE']
+                            d['img_fp'] = img_fp
+                            res[stat['NAME']] = d
+
+    else:
+        for stat in m.metadata(start = start, end = end, bbox = bounds)['STATION']:
+            long = float(stat['LONGITUDE'])
+            lat = float(stat['LATITUDE'])
+            name = stat['NAME'].lower().replace(' ','')
+            with rio.open(img_fp) as src:
+                w = raster_box_extract(src, long, lat, box_side = box_side)
+                img_mean = np.nanmean(src.read(1))
+
+            if len(w[~np.isnan(w)]) > 0:
+                if name not in stat_ls:
+                    obs = m.timeseries(start, end, stid = stat['STID'], vars = ['snow_depth','air_temp'], units = 'height|m')
+                    if obs and 'snow_depth' in obs['UNITS'].keys():
+                        m_unit = obs['UNITS']['snow_depth']
+                        obs = obs['STATION'][0]['OBSERVATIONS']
+                        d = {}
+                        dt = pd.to_datetime(obs['date_time'])
+                        sds = obs['snow_depth_set_1']
+                        sds = [elem for elem in sds if elem is not None]
+                        temp = obs['air_temp_set_1']
+                        temp = [elem for elem in temp if elem is not None]
                         stat_ls.append(name)
-                        if method == 'diff':
-                            df = pd.DataFrame(values, index = dt)
-                            df = df.resample('D').mean()
+                        df = pd.DataFrame(obs['snow_depth_set_1'], index = dt)
+                        df = df.resample('D').mean()
+                        if df.iloc[-1].values[0] > 0.1:
                             delta = (df.iloc[-1] - df.iloc[0]).values[0]
-                            if unit == 'Millimeters':
+                            if m_unit == 'Millimeters':
                                 delta /= 1000
-                            elif unit == 'Centimeters':
+                            elif m_unit == 'Centimeters':
                                 delta /= 100
-                            d[f'delta_{col_name}'] = delta
-                        elif method == 'mean':
-                            # print(start)
-                            # print(end)
-                            # print(stat['STID'])
-                            mean = np.nanmean(values)
-                            if unit == 'Millimeters':
-                                mean /= 1000
-                            elif unit == 'Centimeters':
-                                mean /= 10
-                            d[f'mean_{col_name}'] = mean
-                        elif method == 'dmd':
-                            df = pd.DataFrame(obs[col_in], index = dt)
+                            d[f'delta_sd'] = delta
+
+                            mean_t = np.nanmean(temp)
+                            d[f'mean_temp'] = mean_t
+
+                            df = pd.DataFrame(obs['air_temp_set_1'], index = dt)
                             df = df.resample('D').mean()
                             df = df[(df[0].notnull()) & (df[0]>0)]
                             dmd_sum = np.nansum(df)
-                            d[f'degmeltday_{col_name}'] = dmd_sum
+                            d[f'degmeltday'] = dmd_sum
 
-                        d['img_arr_mean'] = np.nanmean(w)
+                            d['snotel_coh_mean'] = np.nanmean(w)
 
-                        if anc_img:
-                            with rio.open(img_fp) as src_anc:
-                                w_anc = raster_box_extract(src_anc, long, lat, box_side = box_side)
-                                d['anc_img'] = np.nanmean(w_anc)
+                            if anc_img:
+                                with rio.open(img_fp) as src_anc:
+                                    w_anc = raster_box_extract(src_anc, long, lat, box_side = box_side)
+                                    d['anc_img'] = np.nanmean(w_anc)
 
-                        # for anc_col in ['air_temp_set_1','snow_water_equiv_set_1']:
-                        #     if anc_col in obs.keys():
-                        #         df = pd.DataFrame(obs[anc_col], index = dt)
-                        #         df = df.resample('D').mean()
-                        #         name = anc_col.replace('set_1','')
-                        #         d[f'delta_{name}'] = np.nanmean((df.iloc[-1] - df.iloc[0]).values[0])
+                            d['elev'] = stat['ELEVATION']
+                            d['lat'] = stat['LATITUDE']
+                            d['long'] = stat['LONGITUDE']
+                            d['tz'] = stat['TIMEZONE']
+                            d['img_fp'] = img_fp
+                            d['img_coh_mean'] = img_mean
+                            res[stat['NAME']] = d
 
-                        d['elev'] = stat['ELEVATION']
-                        d['lat'] = stat['LATITUDE']
-                        d['long'] = stat['LONGITUDE']
-                        d['tz'] = stat['TIMEZONE']
-                        d['img_fp'] = img_fp
-                        res[stat['NAME']] = d
     if res:
         return res
     else:
         print('No results found...')
+
