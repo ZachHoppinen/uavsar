@@ -197,7 +197,7 @@ def meso_notebook_extract(img_fp, ann_csv, col_in = 'snow_depth_set_1', method =
             if len(w[~np.isnan(w)]) > 0:
                 if name not in stat_ls:
                     obs = m.timeseries(start, end, stid = stat['STID'], vars = ['snow_depth','air_temp'], units = 'height|m')
-                    if obs and 'snow_depth' in obs['UNITS'].keys():
+                    if obs and 'snow_depth' in obs['UNITS'].keys() and 'air_temp' in obs['UNITS'].keys():
                         m_unit = obs['UNITS']['snow_depth']
                         obs = obs['STATION'][0]['OBSERVATIONS']
                         d = {}

@@ -149,6 +149,9 @@ for dir in glob(join(data_dir, '*')):
             dic['pol'] = basename(coh_fp).split('_')[6][4:]
             dic['meso_result'] = meso_notebook_extract(method = 'full' ,img_fp=coh_fp, ann_csv = csv_fp, box_side=5)
             res = pd.concat([res, pd.DataFrame.from_records([dic])])
+    with open(expanduser(f'~/uavsar/results/coherence/coh_snotel_full/res_df'), 'wb') as f:
+        pickle.dump(res, f)
+
 res['diff_dt'] = (res['second_dt'] - res['first_dt']).astype('timedelta64[D]')
 with open(expanduser(f'~/uavsar/results/coherence/coh_snotel_full/res_df'), 'wb') as f:
     pickle.dump(res, f)
