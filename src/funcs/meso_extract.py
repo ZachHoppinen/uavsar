@@ -246,3 +246,74 @@ def meso_notebook_extract(img_fp, ann_csv, col_in = 'snow_depth_set_1', method =
     else:
         print('No results found...')
 
+from invert import epsilon_density, invert_sd
+
+def meso_sd_extract(img_fp, ann_csv, inc_img = None, token = None, box_side = 5):
+    """
+    Function for use in notebooks to capture image bounds and query and return time series of weather observations that overlap non-null values in image.
+    Params:
+    img_fp - filepath to tiff file to extract fromß
+    ann_csv - filepath to annotation csv
+    inc_img - incidence angle image to also extract values from at same locations as original
+    token - Mesopy token (optional). Can be obtained at http://mesowest.org/api/signup/.
+    """
+
+    # Setting up variables
+    ann_df = pd.read_csv(ann_csv)
+    start = mesopy_date_parse(pd.to_datetime(ann_df['stop time of acquisition for pass 1'][0]))
+    end = mesopy_date_parse(pd.to_datetime(ann_df['start time of acquisition for pass 2'][0]))
+    
+    if not token:
+        token = '0191c61bf7914bd49b8bd7a98abb9469'
+    m = Meso(token=token)
+    epsilon = epsilon_density(0.25)
+
+    with rio.open(img_fp) as src:
+        bounds  = src.bounds
+
+    stat_ls = []
+    res = {}
+    vars = ['snow_depth', 'air_temp', 'snow_water_equiv']
+
+    # Looping through all the stations within the image bounds.
+    for stat in m.metadata(start = start, end = end, bbox = bounds)['STATION']:
+        long = float(stat['LONGITUDE'])
+        lat = float(stat['LATITUDE'])
+        name = stat['NAME'].lower().replace(' ','') # try to standarize the station names
+        with rio.open(img_fp) as src, rio.open(inc_img) as inc:
+            w_unw = raster_box_extract(src, long, lat, box_side = box_side)
+
+        if len(w_unw[~np.isnan(w_unw)]) > 0:
+            if name not in stat_ls:
+                stat_ls.append(name)
+                with rio.open(inc_img) as inc:
+                    w_inc = raster_box_extract(inc, long, lat, box_side = box_side)
+                    sd = invert_sd(w_unw, w_inc, wavelength = 0.238403545, epsilon = epsilon)
+                ts = m.timeseries(start, end, stid = stat['STID'], vars = vars, units = 'height|m')
+                if ts and set(vars).issubset(ts['UNITS'].keys()):
+                    obs = ts['STATION'][0]['OBSERVATIONS']
+                    d = {}
+                    d['date_time'] = pd.to_datetime(obs['date_time'])
+                    d['snow_depths'] = obs['snow_depth_set_1']
+                    d['temps'] = obs['air_temp_set_1']
+                    d['swes'] = obs['snow_water_equiv_set_1']
+                    # for key in d.keys():
+                    #     d[key] = [elem for elem in d[key] if elem is not None]
+
+                    for var in vars:
+                        d[f'{var}_unit'] = ts['UNITS'][var]
+
+                    d['elev'] = stat['ELEVATION']
+                    d['lat'] = stat['LATITUDE']
+                    d['long'] = stat['LONGITUDE']
+                    d['tz'] = stat['TIMEZONE']
+                    d['img_fp'] = img_fp
+                    d['uavsar_sd_delta'] = sd
+                    d['inc'] = w_inc
+                    d['phase'] = w_unw
+                    res[stat['NAME']] = d
+
+    if res:
+        return res
+    else:
+        print('No results found...')

@@ -46,5 +46,6 @@ src/snowexsql
 #mintpy
 /mintpy
 /isce2
+/logs
 
 data/wx_station/banner/

@@ -9,10 +9,7 @@ import matplotlib.pyplot as plt
 import pickle
 from meso_extract import meso_notebook_extract
 
-data_dir = '/bsuscratch/zacharykeskinen/data/uavsar/images'
-fig_dir = expanduser('~/uavsar/figures/coherence_collections/')
-pol_cols = {'VV':'red', 'VH':'green','HV':'aqua','HH':'blue'}
-np.random.seed(20220503)
+data_dir = '/bsuscratch/zacharykeskinen/data/uavsar/images'ß
 
 
 # # Temporal Baseline Analysis

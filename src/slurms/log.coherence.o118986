@@ -1,9 +1,0 @@
-Starting sd and temp vs coherence analysis...
-
-Utica, MT:   0%|          | 0/2 [00:00<?, ?it/s]
-Utica, MT:  50%|█████     | 1/2 [04:13<04:13, 253.81s/it]
-Utica, MT: 100%|██████████| 2/2 [06:22<00:00, 180.26s/it]
-Utica, MT: 100%|██████████| 2/2 [06:22<00:00, 191.29s/it]
-
-Eldorado National Forest, CA:   0%|          | 0/4 [00:00<?, ?it/s]
-Eldorado National Forest, CA:  25%|██▌       | 1/4 [37:15<1:51:46, 2235.47s/it]
