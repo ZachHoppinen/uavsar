@@ -1,7 +1,10 @@
 from glob import glob
 import os
-from os.path import basename, dirname, join, exists
+from os.path import basename, dirname, join, exists, expanduser
+import pickle
 import pandas as pd
+import numpy as np
+import rasterio as rio
 from uavsar_pytools import UavsarCollection
 
 data_dir = '/bsuscratch/zacharykeskinen/data/uavsar/images'
@@ -13,3 +16,20 @@ for c in collections:
     os.makedirs(work_dir, exist_ok=True)
     collection = UavsarCollection(collection = c, work_dir = work_dir, clean = True, dates = (pd.to_datetime('20190430'), pd.to_datetime('20220430')), inc = True)
     collection.collection_to_tiffs()
+
+image_fps = []
+for loc_dir in glob(join(data_dir, '*')):
+    for img_dir in glob(join(loc_dir, '*')):
+        if img_dir.endswith('tmp') == False:
+            for f in glob(join(img_dir, '*.tiff')):
+                csv_fp = glob(join(img_dir, '*.csv'))[0]
+                d = {}
+                d['fp'] = f
+                d['ann'] = csv_fp
+                d['location'] = basename(loc_dir)
+                image_fps.append(d)
+                with rio.open(f, 'r+') as src:
+                    src.nodata = np.nan
+
+with open(expanduser('~/scratch/data/uavsar/image_fps'), 'wb') as f:
+    pickle.dump(image_fps, f)
