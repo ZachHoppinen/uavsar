@@ -23,9 +23,11 @@ for loc_dir in glob(join(data_dir, '*')):
         if img_dir.endswith('tmp') == False:
             for f in glob(join(img_dir, '*.tiff')):
                 csv_fp = glob(join(img_dir, '*.csv'))[0]
+                inc_fp = glob(join(img_dir, '*.inc.tiff'))[0]
                 d = {}
                 d['fp'] = f
                 d['ann'] = csv_fp
+                d['inc'] = inc_fp
                 d['location'] = basename(loc_dir)
                 image_fps.append(d)
                 with rio.open(f, 'r+') as src:
