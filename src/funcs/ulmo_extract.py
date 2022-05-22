@@ -11,6 +11,7 @@ import contextily as ctx
 import ulmo
 import rasterio as rio
 from rasterio.features import dataset_features
+from rasterio.windows import Window
 import pickle
 import pyproj
 from shapely.ops import unary_union
