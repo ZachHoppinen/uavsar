@@ -28,6 +28,7 @@ for loc_dir in glob(join(data_dir, '*')):
                 d['fp'] = f
                 d['ann'] = csv_fp
                 d['inc'] = inc_fp
+                d['cor'] = f.replace('unw','cor')
                 d['location'] = basename(loc_dir)
                 image_fps.append(d)
                 with rio.open(f, 'r+') as src:
