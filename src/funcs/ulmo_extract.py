@@ -6,12 +6,13 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import geopandas as gpd
 import matplotlib.pyplot as plt
-from shapely.geometry import Point, Polygon
+from shapely.geometry import Point, Polygon, mapping
 import contextily as ctx
 import ulmo
 import rasterio as rio
 from rasterio.features import dataset_features
 from rasterio.windows import Window
+from rasterio.mask import mask
 import pickle
 import pyproj
 from shapely.ops import unary_union
@@ -87,3 +88,39 @@ def get_snotel_image_results(img_fp, inc_fp, cor_fp, ann_fp, snotel_gdf = sites_
                 res[r['code']] = d
 
     return res
+
+## Snow off Phase section
+
+
+import ee
+
+# Initialize the Earth Engine module.
+ee.Initialize()
+
+# This function computes the feature's geometry area and adds it as a property.
+def addArea(feature):
+  return feature.set({'areaHa': feature.geometry().area(10).divide(100 * 100)})
+
+def snow_off_phase(img_fp, ann_fp):
+    with rio.open(img_fp) as src:
+        bounds = src.bounds
+        geom = ee.Geometry.BBox(*bounds)
+        df = pd.read_csv(ann_fp, index_col = [0])
+        s = pd.to_datetime(df.loc['value','start time of acquisition for pass 1']).tz_localize(None)
+        e = pd.to_datetime(df.loc['value','start time of acquisition for pass 2']).tz_localize(None)
+        try:
+            snow_cover = ee.ImageCollection("MODIS/006/MOD10A1").select('NDSI_Snow_Cover').filterDate(s,e).mean().clip(geom)
+            vectors = snow_cover.gt(10).reduceToVectors(scale=500).filterMetadata('label','equals',0)
+            # Map the area getting function over the FeatureCollection.
+            areaAdded = vectors.map(addArea)
+            areaAdded = areaAdded.filterMetadata('areaHa','greater_than',10)
+            if areaAdded.size().getInfo()>0:
+                f = areaAdded.limit(1, 'areaHa', False)
+                p = Polygon(f.first().geometry().coordinates().getInfo()[0])
+                geoms = [mapping(p)]
+                phase_sub, _ = mask(src, geoms, crop=True)
+                if np.count_nonzero(~np.isnan(phase_sub)) > 0:
+                    snow_off_phase = np.nanmean(phase_sub[0])
+                    return snow_off_phase
+        except ee.ee_exception.EEException as e:
+            print(e)

@@ -4,7 +4,7 @@ from glob import glob
 import numpy as np
 import pandas as pd
 import pickle
-from ulmo_extract import get_snotel_image_results
+from ulmo_extract import get_snotel_image_results, snow_off_phase
 from multiprocessing import Pool, cpu_count
 from datetime import datetime
 
@@ -32,6 +32,7 @@ def process(img):
     dic['pol'] = basename(img['fp']).split('_')[6][4:]
     # img_fp, inc_fp, cor_fp, ann_fp
     dic['ulmo_result'] = get_snotel_image_results(img_fp = img['fp'], inc_fp = img['inc'], cor_fp = img['cor'], ann_fp = img['ann'], box_side = 50)
+    dic['snow_off_phase'] = snow_off_phase(img_fp = img['fp'], ann_fp = img['ann'])
     with open(join(tmp_dir, basename(img['fp'])), 'wb') as f:
         pickle.dump(dic, f)
 
@@ -50,7 +51,7 @@ for f in glob(join(tmp_dir, '*')):
     res = pd.concat([res, pd.DataFrame.from_records([dic])])
 
 res['diff_dt'] = (res['second_dt'] - res['first_dt']).astype('timedelta64[D]')
-with open(expanduser(f'~/uavsar/results/uavsar_snotel_sd/res_df'), 'wb') as f:
+with open(expanduser(f'~/uavsar/results/uavsar_snotel_sd/res_df_v2'), 'wb') as f:
     pickle.dump(res, f)
 
 end_time = datetime.now()
