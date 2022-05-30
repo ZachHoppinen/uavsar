@@ -20,6 +20,7 @@ __pycache__/
 *.prof
 *.lprof
 *.svg
+*.DS_Store
 
 # Python environments for CodeSpaces
 pythonenv*/
