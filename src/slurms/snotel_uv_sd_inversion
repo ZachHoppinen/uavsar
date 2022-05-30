@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -J snow_off_phase # job name
+#SBATCH -J atmospheric_h20 # job name
 #SBATCH -o /bsuhome/zacharykeskinen/uavsar/logs/log.%x.o%j # output and error file name (%j expands to jobID)
 #SBATCH -n 8 # total number of tasks requested
 #SBATCH -N 8 # number of nodes you want to run on
