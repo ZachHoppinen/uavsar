@@ -22,7 +22,7 @@ def get_california_snowsites(img_fp, inc_fp, cor_fp, ann_fp, box_side = 5):
             result.iloc[i]['geometry'] = Polygon(result.iloc[i]['geometry']['coordinates'][0])
         boundary = gpd.GeoSeries(unary_union(result['geometry']))
         boundary_gdf = gpd.GeoDataFrame(boundary, columns = ['geometry'], crs = 'EPSG:4326')
-        vrs = [CdecStationVariables.SWE, CdecStationVariables.SNOWDEPTHß]
+        vrs = [CdecStationVariables.SWE, CdecStationVariables.SNOWDEPTH]
         points = CDECPointData.points_from_geometry(boundary_gdf, vrs, snow_courses=False)
         sites = points.to_dataframe()
         res = {}
@@ -40,7 +40,8 @@ def get_california_snowsites(img_fp, inc_fp, cor_fp, ann_fp, box_side = 5):
                     for var in vrs:
                         if var.name in values.columns:
                             unit = values[var.name + '_units'].values[0]
-                            d[var.name] = imperial_to_metric(array = values[var.name].values, units = unit)
+                            if type(unit) == str:
+                                d[var.name] = imperial_to_metric(array = values[var.name].values, units = unit)
                     d['phase'] = raster_box_extract(src, r.geometry.x, r.geometry.y, box_side)
                     d['inc'] = raster_box_extract(inc_src, r.geometry.x, r.geometry.y, box_side)
                     d['cor'] = raster_box_extract(cor_src, r.geometry.x, r.geometry.y, box_side)
