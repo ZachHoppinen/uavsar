@@ -186,10 +186,10 @@ def find_best_rotated(image):
     # print(f'Number of secondary nan {nans}')
     # ax_sec.imshow(rot_sec)
     if best_angle:
-        print(f'Best angle {best_angle} and size {best_size}')
-        plt.imshow(best_image)
-        plt.show()
-        return best_image
+        # print(f'Best angle {best_angle} and size {best_size}')
+        # plt.imshow(best_image)
+        # plt.show()
+        return best_image, best_angle
     else:
         print('No rotation found.')
         return None
