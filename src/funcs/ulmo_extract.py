@@ -6,12 +6,13 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import geopandas as gpd
 import matplotlib.pyplot as plt
-from shapely.geometry import Point, Polygon
+from shapely.geometry import Point, Polygon, mapping
 import contextily as ctx
 import ulmo
 import rasterio as rio
 from rasterio.features import dataset_features
 from rasterio.windows import Window
+from rasterio.mask import mask
 import pickle
 import pyproj
 from shapely.ops import unary_union
@@ -55,7 +56,7 @@ def snotel_fetch(sitecode, start_date='2015-12-01', end_date = '2020-12-01'):
             else:
                 vals = values_df
         except Exception as e:
-            print(e)
+            # print(e)
             print("Unable to fetch %s" % var)
 
     return vals

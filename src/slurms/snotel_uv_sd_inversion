@@ -1,10 +1,10 @@
 #!/bin/bash
-#SBATCH -J pool_sd_calc # job name
+#SBATCH -J calfornia_v2 # job name
 #SBATCH -o /bsuhome/zacharykeskinen/uavsar/logs/log.%x.o%j # output and error file name (%j expands to jobID)
-#SBATCH -n 8 # total number of tasks requested
-#SBATCH -N 8 # number of nodes you want to run on
+#SBATCH -n 48 # total number of tasks requested
+#SBATCH -N 1 # number of nodes you want to run on
 #SBATCH -p bsudfq # queue (partition)
-#SBATCH -t 01:00:00 # run time (hh:mm:ss) - 1 hour in this example.
+#SBATCH -t 00:30:00 # run time (hh:mm:ss) - 1 hour in this example.
 
 eval "$(conda shell.bash hook)"
 conda activate proj
