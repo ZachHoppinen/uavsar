@@ -88,3 +88,26 @@ def get_snotel_image_results(img_fp, inc_fp, cor_fp, ann_fp, snotel_gdf = sites_
                 res[r['code']] = d
 
     return res
+
+def get_snotel_within_image(img_fp, ann_fp, start, end, snotel_gdf = sites_gdf_conus):
+    ann = pd.read_csv(ann_fp)
+    with rio.open(img_fp) as src:
+        shapes = list(dataset_features(src, bidx=1, as_mask=False, geographic=True, band=False))
+        result = gpd.GeoDataFrame.from_dict(shapes, crs = 'EPSG:4326')
+        for i in result.index:
+            result.iloc[i]['geometry'] = Polygon(result.iloc[i]['geometry']['coordinates'][0])
+        boundary = gpd.GeoSeries(unary_union(result['geometry']))
+        boundary_gdf = gpd.GeoDataFrame(boundary, columns = ['geometry'], crs = snotel_gdf.crs)
+        points_within = gpd.sjoin(snotel_gdf, boundary_gdf, predicate='within')
+        res = {}
+        for _, r in points_within.iterrows():
+            d = {}
+            values = snotel_fetch(r['code'], start_date=start, end_date=end)
+            # Get units
+            if values.size != 0:
+                for var in values.columns:
+                    unit = ulmo.cuahsi.wof.get_variable_info(wsdlurl, var)['units']['name']
+                    d[var] = imperial_to_metric(values.loc[:, var].values ,unit)
+                res[r['code']] = d
+
+    return res

@@ -27,9 +27,9 @@ def process(img):
     dic = {}
     desc = pd.read_csv(img['ann'], index_col = 0)
     dic['name'] = basename(img['fp'])
-    dic['first_dt'] = pd.to_datetime(desc.loc['value', 'start time of acquisition for pass 1'])
+    dic['first_dt'] = pd.to_datetime(desc.loc['value', 'start time of acquisition for pass 1']) #pd.todateime will need to be removed before next run. already done before pickling
     dic['second_dt'] = pd.to_datetime(desc.loc['value', 'start time of acquisition for pass 2'])
-    dic['pol'] = basename(img['fp']).split('_')[6][4:]
+    dic['pol'] = basename(img['fp']).split('_')[6][4:] # in img['pol'] now
     dic['result'] = get_snotel_image_results(img['fp'], img['inc'], img['ann'])
     # res = pd.concat([res, pd.DataFrame.from_records([dic])])
     with open(join(tmp_dir, basename(img['fp'])), 'wb') as f:
