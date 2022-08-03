@@ -1,6 +1,7 @@
 import os
 from os.path import join, exists, basename, dirname, expanduser
 from glob import glob
+import shutil
 import numpy as np
 import pandas as pd
 import pickle
@@ -21,6 +22,7 @@ with open(expanduser('~/scratch/data/uavsar/image_fps'), 'rb') as f:
 image_fps = [f for f in image_fps if f['fp'].endswith('.unw.grd.tiff')]
 
 tmp_dir = expanduser(f'~/uavsar/results/uavsar_snotel_sd/tmp/')
+os.makedirs(tmp_dir, exist_ok=True)
 
 def process(img_set):
     dic = {}
@@ -51,9 +53,9 @@ def process(img_set):
                 label = 'unw'
             site_result[label] = img.sel(x = site.geometry.x, y = site.geometry.y, method = 'nearest', tolerance = 0.0001).values[0]
         if ca:
-            snotel_point = CDECPointData(site.id, "my name")
+            snotel_point = CDECPointData(site.id, site_name)
         else:
-            snotel_point = SnotelPointData(site.id, "my name")
+            snotel_point = SnotelPointData(site.id, site_name)
         try:
             site_result['meso'] = snotel_point.get_hourly_data(dic['first_dt'], dic['second_dt'], vrs)
         except:
@@ -61,7 +63,10 @@ def process(img_set):
         site_result['geom'] = site.geometry
         sites_results[site_name] = site_result
     dic['snotel_results'] = sites_results
-    dic['h20_atmospheric_diff'] = atmospheric_h20_diff(img_fp = img_set['fp'], ann_fp = img_set['ann'])
+    try:
+        dic['h20_atmospheric_diff'] = atmospheric_h20_diff(img_fp = img_set['fp'], ann_fp = img_set['ann'])
+    except:
+        dic['h20_atmospheric_diff'] = np.nan
     with open(join(tmp_dir, basename(img_set['fp'].split('.')[0])), 'wb') as f:
         pickle.dump(dic, f)
 
@@ -83,6 +88,8 @@ for f in glob(join(tmp_dir, '*')):
 
 with open(expanduser(f'~/uavsar/results/uavsar_snotel_sd/res_df_updated'), 'wb') as f:
     pickle.dump(res, f)
+
+shutil.rmtree(tmp_dir)
 
 end_time = datetime.now()
 print(f'Run Time: {end_time - start_time}')
