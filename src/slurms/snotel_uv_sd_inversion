@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -J calfornia_v2 # job name
+#SBATCH -J updated_metloom # job name
 #SBATCH -o /bsuhome/zacharykeskinen/uavsar/logs/log.%x.o%j # output and error file name (%j expands to jobID)
 #SBATCH -n 48 # total number of tasks requested
 #SBATCH -N 1 # number of nodes you want to run on
@@ -9,4 +9,4 @@
 eval "$(conda shell.bash hook)"
 conda activate proj
 
-python ~/uavsar/src/uavsar_snotel_sd/uavsar_snotel_sd.py
+python ~/uavsar/src/uavsar_snotel_sd/riox_snotel_coh.py
