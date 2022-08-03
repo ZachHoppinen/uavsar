@@ -28,7 +28,7 @@ def process(img_set):
     dic['name'] = basename(img_set['fp'])
     dic['first_dt'] = pd.to_datetime(desc.loc['value', 'start time of acquisition for pass 1'])
     dic['second_dt'] = pd.to_datetime(desc.loc['value', 'start time of acquisition for pass 2'])
-    dic['diff_dt'] = (dic['second_dt'] - dic['first_dt']).astype('timedelta64[D]')
+    dic['diff_dt'] = dic['second_dt'] - dic['first_dt']
 
     dic['pol'] = img_set['pol']
     boundary = rio_to_exterior(img_set['fp'])
