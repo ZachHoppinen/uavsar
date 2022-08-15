@@ -75,16 +75,16 @@ start_time = datetime.now()
 os.makedirs(tmp_dir, exist_ok= True)
 
 print('Running pooled process')
-
-pool = Pool()                         # Create a multiprocessing Pool
+# Create a multiprocessing Pool
+pool = Pool()
 pool.map(process, image_fps)
 
 print('Combining tmp dictionaries.')
 res = {}
-for f in glob(join(tmp_dir, '*')):
-    with open(f, 'rb') as f:
+for fp in glob(join(tmp_dir, '*')):
+    with open(fp, 'rb') as f:
         dic = pickle.load(f)
-    res[basename(f)] = dic
+    res[basename(fp)] = dic
 
 with open(expanduser(f'~/uavsar/results/uavsar_snotel_sd/res_df_updated'), 'wb') as f:
     pickle.dump(res, f)
