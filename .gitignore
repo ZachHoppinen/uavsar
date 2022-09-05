@@ -51,3 +51,6 @@ src/snowexsql
 
 data/wx_station/banner/
 results/uavsar_snotel_sd
+
+results/*/tmp/
+results/*
