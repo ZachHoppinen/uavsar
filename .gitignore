@@ -54,3 +54,5 @@ results/uavsar_snotel_sd
 
 results/*/tmp/
 results/*
+
+data/dc_lidar/
