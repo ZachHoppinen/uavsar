@@ -56,3 +56,4 @@ results/*/tmp/
 results/*
 
 data/dc_lidar/
+*.nc
