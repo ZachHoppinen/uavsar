@@ -56,3 +56,15 @@ results/*/tmp/
 results/*
 
 data/dc_lidar/
+*.nc
+*.pkl
+data/aucillary/roads
+*.shp
+*.dbf
+*.prj
+*.shx
+*.xml
+*.sbx
+*.cpg
+*.sbn
+*.tfw
