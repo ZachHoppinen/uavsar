@@ -33,11 +33,12 @@ for fp in glob(join(netcdf_fps, '*')):
     print(basename(fp))
     with open(fp, 'rb') as f:
         cor_vv = pickle.load(f)
-    days = [int(d.split('_')[-1].replace('d','')) for d in cor_vv.band.values]
-    taus = np.apply_along_axis(arr = cor_vv['cor_vv'].values, func1d = tau, axis = 0, days = days)
-    da = cor_vv.isel({'band':0})['cor_vv']
-    da = da.drop('band')
-    da.values = taus
-    da.rio.to_raster(join('/bsuhome/zacharykeskinen/uavsar/results/taus', basename(fp).replace('.pkl','.tif')))
+    if len(cor_vv.band.values) > 2:
+        days = [int(d.split('_')[-1].replace('d','')) for d in cor_vv.band.values]
+        taus = np.apply_along_axis(arr = cor_vv['cor_vv'].values, func1d = tau, axis = 0, days = days)
+        da = cor_vv.isel({'band':0})['cor_vv']
+        da = da.drop('band')
+        da.values = taus
+        da.rio.to_raster(join('/bsuhome/zacharykeskinen/uavsar/results/taus', basename(fp).replace('.pkl','.tif')))
 
 
