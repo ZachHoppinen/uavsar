@@ -18,8 +18,8 @@ def tau(cors, days):
     else:
         return np.nan
 
-# s1ds = glob(join(expanduser('~/scratch/data/uavsar/sentinel/gm'), 'S1*VV*'))
-s1ds = glob(join(expanduser('~/scratch/data/uavsar/sentinel/lowman'), 'S1*VV*'))
+s1ds = glob(join(expanduser('~/scratch/data/uavsar/sentinel/gm'), 'S1*VV*'))
+# s1ds = glob(join(expanduser('~/scratch/data/uavsar/sentinel/lowman'), 'S1*VV*'))
 
 c1 = rxa.open_rasterio(glob(join(s1ds[0], '*corr.tif'))[0]).rio.reproject('EPSG:4326').rio.clip_box(-108.3, 38.7, -107.9, 39.12)
 cor_vv_arr = np.zeros((len(s1ds), *c1.values[0].shape))
