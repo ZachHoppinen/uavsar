@@ -18,9 +18,10 @@ def tau(cors, days):
     else:
         return np.nan
 
-s1ds = glob(join(expanduser('~/scratch/data/uavsar/sentinel/'), 'S1*VV*'))
+# s1ds = glob(join(expanduser('~/scratch/data/uavsar/sentinel/gm'), 'S1*VV*'))
+s1ds = glob(join(expanduser('~/scratch/data/uavsar/sentinel/lowman'), 'S1*VV*'))
 
-c1 = rxa.open_rasterio(glob(join(s1ds[0], '*corr.tif'))[0]).rio.reproject('EPSG:4326').rio.clip_box(-115.3, 44.2, -115.05, 44.4)
+c1 = rxa.open_rasterio(glob(join(s1ds[0], '*corr.tif'))[0]).rio.reproject('EPSG:4326').rio.clip_box(-108.3, 38.7, -107.9, 39.12)
 cor_vv_arr = np.zeros((len(s1ds), *c1.values[0].shape))
 
 for i, fps in tqdm(enumerate(s1ds), total = len(s1ds)):
@@ -33,4 +34,4 @@ taus = np.apply_along_axis(arr = cor_vv_arr, func1d = tau, axis = 0, days = days
 
 c1.values[0] = taus
 
-c1.rio.to_raster(join('/bsuhome/zacharykeskinen/uavsar/results/taus','s1_lowman.tif'))
+c1.rio.to_raster(join('/bsuhome/zacharykeskinen/uavsar/results/taus','s1_gm.tif'))
